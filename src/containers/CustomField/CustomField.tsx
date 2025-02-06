@@ -78,8 +78,8 @@ const CustomFieldExtension = () => {
 
   useEffect(() => {
     const initialData = appSdk?.location?.CustomField?.field.getData();
-    if (initialData?.filters && initialData?.filters?.length > 0) {
-      setSelectedTerms(initialData.filters);
+    if (initialData?.data && initialData?.data?.length > 0) {
+      setSelectedTerms(initialData.data);
     } else {
       const initialSelection = taxonomies.map((taxonomy: termProps) => ({uid: taxonomy.uid, name: taxonomy.name, terms: []}));
       setSelectedTerms(initialSelection);
@@ -88,7 +88,7 @@ const CustomFieldExtension = () => {
 
   useEffect(() => {
     // update data in appSdk
-    appSdk?.location?.CustomField?.field.setData({filters: setSelectedTerms})
+    appSdk?.location?.CustomField?.field.setData({data: selectedTerms})
   }, [selectedTerms])
 
   if (!taxonomies?.length) {
