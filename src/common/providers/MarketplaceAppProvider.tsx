@@ -35,6 +35,7 @@ export const MarketplaceAppProvider: React.FC<ProviderProps> = ({ children }) =>
         appSdk.location.DashboardWidget?.frame?.disableAutoResizing();
         await appSdk.location.DashboardWidget?.frame?.updateHeight?.(722);
         const appConfig = await appSdk.getConfig();
+        console.log("🚀 ~ .then ~ appConfig:", appConfig)
         setConfig(appConfig);
       })
       .catch(() => {

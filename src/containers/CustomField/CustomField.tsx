@@ -1,65 +1,157 @@
-import React, { useCallback, useState } from "react";
-import localeTexts from "../../common/locales/en-us/index";
-import parse from "html-react-parser";
-import { useAppConfig } from "../../common/hooks/useAppConfig";
-import "../index.css";
+/* eslint-disable no-unsafe-optional-chaining */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState } from "react";
 import "./CustomField.css";
-import Icon from "../../assets/Custom-Field-Logo.svg";
-import ReadOnly from "../../assets/lock.svg";
-import JsonView from "../../assets/JsonView.svg";
-import ConfigModal from "../../components/ConfigModal/ConfigModal";
+import { Accordion, Checkbox, Tag, AsyncLoader, Button } from "@contentstack/venus-components";
+import { useAppSdk } from "../../common/hooks/useAppSdk";
+import { fetchTaxonomies, fetchTaxonomyTerms } from "../../services";
+
+type termProps = {
+  uid: string;
+  name: string;
+  terms:  termProps[] | [];
+  type?: 'taxonomy';
+  taxonomy_uid?: string;
+};
+
+type renderProps = termProps & {
+  taxonomyIndex: number;
+}
 
 const CustomFieldExtension = () => {
-  const appConfig = useAppConfig();
+  const [taxonomies, setTaxonomies] = useState<termProps[]>([]);
+  const [selectedTerms, setSelectedTerms] = useState<termProps[]>([]);
 
-  const [isRawConfigModalOpen, setRawConfigModalOpen] = useState<boolean>(false);
+  const appSdk = useAppSdk()
 
-  const handleViewRawConfig = useCallback(() => {
-    setRawConfigModalOpen(true);
-  }, []);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { taxonomyUid } = e.target.dataset
+    const { checked, value, id } = e.target;
 
-  const handleCloseModal = useCallback(() => {
-    setRawConfigModalOpen(false);
-  }, []);
+    if (checked) {
+      setSelectedTerms((prevValue: any) => {
+        return prevValue.map((taxonomy: termProps) => {
+          if (taxonomy.uid === taxonomyUid) {
+            return {
+              ...taxonomy,
+              terms: [...taxonomy.terms, {
+                uid: id,
+                name: value,
+              }]
+            }
+          }
+          return taxonomy;
+        })
+      });
+    } else {
+      setSelectedTerms((prevValue) => {
+        return prevValue.map((taxonomy) => {
+          if (taxonomy.uid === taxonomyUid) {
+            return {
+              ...taxonomy,
+              terms: taxonomy.terms.filter((term: {uid: string}) => term.uid !== id)
+            }
+          }
+          return taxonomy;
+        })
+      });
+    }
 
-  const sampleAppConfig = appConfig?.["sample_app_configuration"] || "";
-  const trimmedSampleAppConfig =
-    sampleAppConfig.length > 17 ? `${sampleAppConfig.substring(0, 17)}...` : sampleAppConfig;
+  }
+
+  const fetchTaxonomyData = async () => {
+    try {
+      const taxonomiesRes = await fetchTaxonomies() // fetch taxonomies
+      let allTaxonomies = taxonomiesRes.map((taxonomy: { uid: string, name: string }) => { // fetch all terms of each taxonomy
+        return fetchTaxonomyTerms(taxonomy);
+      })
+      allTaxonomies = await Promise.all(allTaxonomies);
+      setTaxonomies(allTaxonomies)
+    } catch (error) {
+      console.log("🚀 ~ fetchTaxonomies ~ error:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchTaxonomyData();
+  }, [])
+
+  useEffect(() => {
+    const initialData = appSdk?.location?.CustomField?.field.getData();
+    if (initialData?.filters && initialData?.filters?.length > 0) {
+      setSelectedTerms(initialData.filters);
+    } else {
+      const initialSelection = taxonomies.map((taxonomy: termProps) => ({uid: taxonomy.uid, name: taxonomy.name, terms: []}));
+      setSelectedTerms(initialSelection);
+    }
+  }, [taxonomies])
+
+  useEffect(() => {
+    // update data in appSdk
+    appSdk?.location?.CustomField?.field.setData({filters: setSelectedTerms})
+  }, [selectedTerms])
+
+  if (!taxonomies?.length) {
+    return (
+      <div className="layout-container">
+        <AsyncLoader color='#6C5CE7' testId='cs-async-loader' />
+      </div>
+    )
+  }
+
+  const recursiveRender = ({name, uid, terms, type, taxonomyIndex}: renderProps) => {
+    return <Accordion
+        title={name}
+        addLeftComponent={ type === 'taxonomy' &&
+          <Button tabIndex={0} onlyIcon={true} onlyIconHoverColor="primary" version="v2" icon="v2-DotsSixVertical" />
+        }
+        accordionDataCount={terms.length}
+        noChevron={terms.length > 0 ? false : true}
+        // isAccordionParent={type === 'taxonomy'}
+        // isContainerization={type === 'taxonomy'}
+        key={uid}
+      >
+        {terms.map((term: termProps) => (
+          <div
+            key={term.uid} 
+            style={{marginLeft:`${type === 'taxonomy' ? '1.5rem':'inherit' }`}}
+          >    
+            <div className="term-container">
+              <Checkbox name={term.uid} id={term.uid} value={term.name} data-taxonomy-uid={term.taxonomy_uid}
+                checked={selectedTerms?.[taxonomyIndex]?.terms.find(({uid}: termProps) => uid === term.uid)}
+                onChange={handleChange}
+              />  
+              {term?.terms?.length > 0 ? recursiveRender({...term , terms: [...term?.terms], taxonomyIndex}) 
+                :  <label className="term-label"
+                htmlFor={term.uid}
+              >
+                {term.name}
+              </label>}
+            </div>
+
+          </div>
+        ))}
+   </Accordion>
+  };
 
   return (
-    <div className="layout-container">
       <div className="ui-location-wrapper">
-        <div className="ui-location">
-          <div className="ui-container">
-            <div className="logo-container">
-              <img src={Icon} alt="Logo" />
-              <p>{localeTexts.CustomField.title}</p>
-            </div>
-            <div className="config-container">
-              <div className="label-container">
-                <p className="label">Sample App Configuration</p>
-                <p className="info">(read only)</p>
-              </div>
-              <div className="input-wrapper">
-                <div className="input-container">
-                  <p className="config-value">{trimmedSampleAppConfig}</p>
-                  <img src={ReadOnly} alt="ReadOnlyLogo" />
-                </div>
-
-                <img src={JsonView} alt="Show-Json-CTA" className="show-json-cta" onClick={handleViewRawConfig} />
-                {isRawConfigModalOpen && appConfig && <ConfigModal config={appConfig} onClose={handleCloseModal} />}
-              </div>
-            </div>
-            <div className="location-description">
-              <p className="location-description-text">{parse(localeTexts.CustomField.body)}</p>
-              <a target="_blank" rel="noreferrer" href={localeTexts.CustomField.button.url}>
-                <span className="location-description-link">{localeTexts.CustomField.button.text}</span>
-              </a>
-            </div>
+        {taxonomies?.length > 0 && taxonomies.map((taxonomy, index) => (
+          <>
+          <div className="taxonomy-selection">
+            {selectedTerms?.length > 0 && selectedTerms?.[index]?.terms?.length 
+              ? <Tag label={`${taxonomy.name} selections`} tags={
+                selectedTerms?.[index]?.terms?.map((term: {name: string}) => term.name)
+              } version='v2' />
+            : ''}
           </div>
-        </div>
+
+            <div className="taxonomy-container" key={taxonomy?.uid}>
+              {recursiveRender({...taxonomy, taxonomyIndex: index})}
+            </div>
+          </>
+        ))}
       </div>
-    </div>
   );
 };
 

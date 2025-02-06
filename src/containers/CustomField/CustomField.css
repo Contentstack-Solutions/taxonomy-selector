@@ -1,7 +1,4 @@
 
-.layout-container {
-  margin: 0px;
-}
 
 .ui-location-wrapper {
   padding: 1.5rem 1.5rem;
@@ -10,39 +7,44 @@
   align-self: stretch;
 }
 
-.ui-location {
-  padding: 1.5rem 0rem;
-  flex-direction: column;
-  justify-content: center;
+.taxonomy-container {
+  width: 100%;
+}
+
+.term-container {
+  padding-left: .625rem;
+  display: flex;
+  margin: 0.25rem 0;
+}
+
+.term-label {
+  color: #647696;
+  font-size: .75rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -.0025em;
+  line-height: 1.5rem;
+  padding-left: 0.625rem;
+  display: inline-flex;
   align-items: center;
-  gap: 1.9375rem;
-  align-self: stretch;
-  width: 96vw;
 }
 
-.ui-container {
-  padding: 1.5rem 0rem;
+.Accordion__heading {
+  height: 2rem;
+}
+.taxonomy-selection {
+  width: 100%;
+}
+.taxonomy-selection > div {
+  align-items: center;
+  padding: 0 1rem;
+  border: 1px solid #dde3ee !important;
 }
 
-.config-container {
-  width: 23.5625rem;
-  justify-content: center;
-  gap: 0.25rem;
-}
+/* .taxonomy-selection p {
+  display: block;
+} */
 
-.label {
-  font-size: 0.875rem;
-}
-
-.info {
-  font-size: 0.875rem;
-}
-
-.location-description {
-  width: 25.5625rem;
-}
-
-.location-description-text {
-  white-space: nowrap; 
-  word-wrap: break-word; 
+.Tag_v2 {
+  border: none!important;
 }

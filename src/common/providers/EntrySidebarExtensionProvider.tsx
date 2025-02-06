@@ -6,7 +6,7 @@ import { EntrySidebarExtensionContext } from "../contexts/entrySidebarExtensionC
 import { ChildProp } from "../types/types";
 
 export const EntrySidebarExtensionProvider = ({ children }: ChildProp) => {
-  const [entryData, setEntry] = useState({});
+  const [entryData, setEntry] = useState<{ [key: string]: unknown }>({});
   const [loading, setLoading] = useState<boolean>(false);
   const { location } = useAppLocation();
 
@@ -16,7 +16,7 @@ export const EntrySidebarExtensionProvider = ({ children }: ChildProp) => {
       setLoading(true);
       if ('entry' in location) {
         const entry: { [key: string]: unknown } | undefined = location?.entry?.getData();
-        setEntry(entry);
+        entry && setEntry(entry);
       }
       setLoading(false);
     })();
