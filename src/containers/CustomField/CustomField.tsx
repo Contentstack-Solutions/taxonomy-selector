@@ -24,6 +24,10 @@ const CustomFieldExtension = () => {
 
   const appSdk = useAppSdk()
 
+  /**
+   * Handles checkbox change events for taxonomy terms
+   * @param e - The checkbox change event
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { taxonomyUid } = e.target.dataset
     const { checked, value, id } = e.target;
@@ -58,7 +62,14 @@ const CustomFieldExtension = () => {
     }
 
   }
-
+  
+  /**
+   * Fetches taxonomy data by:
+   * 1. Getting all taxonomies
+   * 2. For each taxonomy, fetching its associated terms
+   * 3. Setting the combined taxonomy and terms data in state
+   * @throws {Error} Logs error to console if fetching fails
+   */
   const fetchTaxonomyData = async () => {
     try {
       const taxonomiesRes = await fetchTaxonomies() // fetch taxonomies
@@ -68,15 +79,20 @@ const CustomFieldExtension = () => {
       allTaxonomies = await Promise.all(allTaxonomies);
       setTaxonomies(allTaxonomies)
     } catch (error) {
-      console.log("🚀 ~ fetchTaxonomies ~ error:", error);
+      console.error("🚀 ~ fetchTaxonomies ~ error:", error);
     }
   }
-
   useEffect(() => {
     fetchTaxonomyData();
   }, [])
 
   useEffect(() => {
+    /**
+   * Initialize selected terms either from:
+   * 1. Existing data in appSdk if available
+   * 2. Empty array of terms for each taxonomy if no existing data
+   * Runs when taxonomies are loaded
+   */
     const initialData = appSdk?.location?.CustomField?.field.getData();
     if (initialData?.data && initialData?.data?.length > 0) {
       setSelectedTerms(initialData.data);
@@ -87,7 +103,9 @@ const CustomFieldExtension = () => {
   }, [taxonomies])
 
   useEffect(() => {
-    // update data in appSdk
+    /**
+     * Updates the current selectedTerms state to the CustomField data
+     */
     appSdk?.location?.CustomField?.field.setData({data: selectedTerms})
   }, [selectedTerms])
 
@@ -99,6 +117,16 @@ const CustomFieldExtension = () => {
     )
   }
 
+  /**
+   * Recursively renders a taxonomy and its nested terms in an accordion structure
+   * @param {Object} props - The properties for rendering
+   * @param {string} props.name - The name of the taxonomy term
+   * @param {string} props.uid - Unique identifier for the taxonomy term
+   * @param {Array} props.terms - Array of child terms
+   * @param {string} props.type - custome type of the item ('taxonomy' or 'term')
+   * @param {number} props.taxonomyIndex - Index of the taxonomy in the taxonomies array
+   * @returns {JSX.Element} Accordion component with nested terms
+   */
   const recursiveRender = ({name, uid, terms, type, taxonomyIndex}: renderProps) => {
     return <Accordion
         title={name}
@@ -107,8 +135,6 @@ const CustomFieldExtension = () => {
         }
         accordionDataCount={terms.length}
         noChevron={terms.length > 0 ? false : true}
-        // isAccordionParent={type === 'taxonomy'}
-        // isContainerization={type === 'taxonomy'}
         key={uid}
       >
         {terms.map((term: termProps) => (
@@ -133,10 +159,9 @@ const CustomFieldExtension = () => {
         ))}
    </Accordion>
   };
-
   return (
       <div className="ui-location-wrapper">
-        {taxonomies?.length > 0 && taxonomies.map((taxonomy, index) => (
+        {taxonomies?.length > 0 && taxonomies.map((taxonomy, index) => ( // render each taxonomy
           <>
           <div className="taxonomy-selection">
             {selectedTerms?.length > 0 && selectedTerms?.[index]?.terms?.length 
@@ -147,7 +172,8 @@ const CustomFieldExtension = () => {
           </div>
 
             <div className="taxonomy-container" key={taxonomy?.uid}>
-              {recursiveRender({...taxonomy, taxonomyIndex: index})}
+              {/* render each taxonomy's associated terms recursively in nested accordion */}
+              {recursiveRender({...taxonomy, taxonomyIndex: index})} 
             </div>
           </>
         ))}
