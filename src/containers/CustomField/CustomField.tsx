@@ -159,15 +159,20 @@ const CustomFieldExtension = () => {
         ))}
    </Accordion>
   };
+
   return (
       <div className="ui-location-wrapper">
         {taxonomies?.length > 0 && taxonomies.map((taxonomy, index) => ( // render each taxonomy
           <>
           <div className="taxonomy-selection">
             {selectedTerms?.length > 0 && selectedTerms?.[index]?.terms?.length 
-              ? <Tag label={`${taxonomy.name} selections`} tags={
-                selectedTerms?.[index]?.terms?.map((term: {name: string}) => term.name)
-              } version='v2' />
+              ? <Tag 
+                label={`${taxonomy.name} selections`} 
+                tags={
+                    selectedTerms?.[index]?.terms?.map((term: {name: string}) => term.name)
+                  } version='v2'
+                isDisabled={true}
+                />
             : ''}
           </div>
 

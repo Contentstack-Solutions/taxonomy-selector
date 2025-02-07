@@ -1,4 +1,7 @@
-# Contentstack Marketplace App Boilerplate
+# Taxonomy Selector Marketplace App 
+A Contentstack app that allows you to select a taxonomy terms from multiple taxonomies in a custom field.
+
+> **Note:** This app is not offically provides Contentstack.
 
 ## Provider
 
