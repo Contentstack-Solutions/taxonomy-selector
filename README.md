@@ -1,7 +1,15 @@
 # Taxonomy Selector Marketplace App 
-A Contentstack app that allows you to select a taxonomy terms from multiple taxonomies in a custom field.
 
 > **Note:** This app is not offically provided by Contentstack.
+
+Taxonomy Selector is a marketplace app where the CustomField component creates an interactive taxonomy selector interface that allows users to:
+- Browse through hierarchical taxonomies in an expandable accordion layout
+- Select/deselect terms within each taxonomy using checkboxes
+- See their selected terms displayed as tags at the top of each taxonomy section
+- Navigate nested terms easily with an intuitive indented structure
+
+The component automatically loads taxonomy data, maintains the state of selected terms, and syncs selections with Contentstack's CustomField data. It's particularly useful for editors who need to organize and categorize their content using taxonomies .
+
 
 ## Provider
 
